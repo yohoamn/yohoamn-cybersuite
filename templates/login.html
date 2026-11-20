@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Analyst Login{% endblock %}
+
+{% block content %}
+<div style="max-width: 820px; margin: 30px auto;">
+    <div style="text-align: center; margin-bottom: 24px;">
+        <h1 style="color: #00e5ff; font-size: 2rem;">{{ author }} CyberSuite</h1>
+        <p style="color: #94a3b8;">Unified SOC Platform: Active Web Honeypot (HoneyTrap) + Image Forensics (StegoVault)</p>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <h2>Analyst Sign In</h2>
+            <form method="POST" action="{{ url_for('login') }}">
+                <input type="hidden" name="action" value="login">
+                <label>Analyst Username</label>
+                <input type="text" name="username" placeholder="e.g. yohoamn" required>
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Enter password" required>
+                <button type="submit" class="btn" style="width: 100%;">Access SOC Dashboard</button>
+            </form>
+            <div class="code-box" style="margin-top: 16px; font-size: 0.82rem;">
+                <strong>Default Demo Login:</strong><br>
+                Username: <code>yohoamn</code> | Password: <code>cyber123</code>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Register New Analyst</h2>
+            <form method="POST" action="{{ url_for('login') }}">
+                <input type="hidden" name="action" value="register">
+                <label>Choose Username</label>
+                <input type="text" name="username" placeholder="New analyst ID" required>
+                <label>Create Password</label>
+                <input type="password" name="password" placeholder="Strong password" required>
+                <button type="submit" class="btn btn-secondary" style="width: 100%;">Create Account</button>
+            </form>
+            <p style="margin-top: 16px; font-size: 0.85rem; color: #94a3b8;">
+                Want to test the public Honeypot trap directly?
+                <a href="{{ url_for('trap_portal') }}" target="_blank">Launch Decoy Admin Portal &rarr;</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

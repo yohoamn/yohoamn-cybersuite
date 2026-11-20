@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}SOC Overview{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 6px;">Security Operations Center — {{ author }}</h1>
+<p style="color: #94a3b8; margin-bottom: 22px;">Logged in as <strong>{{ current_user }}</strong> ({{ user_role }}) | Real-time Defense &amp; Digital Forensics</p>
+
+<div class="grid-4">
+    <div class="stat-card">
+        <div class="stat-label">Total Intrusion Attempts</div>
+        <div class="stat-num">{{ total_attacks }}</div>
+    </div>
+    <div class="stat-card red">
+        <div class="stat-label">Critical Alerts (SQLi / CMD)</div>
+        <div class="stat-num">{{ critical_attacks }}</div>
+    </div>
+    <div class="stat-card amber">
+        <div class="stat-label">Auto-Blocked IPs</div>
+        <div class="stat-num">{{ blocked_count }}</div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-label">StegoVault Forensics Ops</div>
+        <div class="stat-num">{{ stego_count }}</div>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <h2>Module 1: HoneyTrap (Active Web Honeypot)</h2>
+        <p style="color: #94a3b8; margin-bottom: 12px;">
+            Deploys a realistic decoy corporate admin login page that traps attackers, classifies SQLi/XSS/Command Injection payloads via regex signatures, and auto-bans malicious IPs.
+        </p>
+        <a href="{{ url_for('honeytrap_soc') }}" class="btn">Open HoneyTrap SOC</a>
+        <a href="{{ url_for('trap_portal') }}" target="_blank" class="btn btn-secondary">Launch Decoy Portal</a>
+    </div>
+
+    <div class="card">
+        <h2>Module 2: StegoVault (Steganography &amp; Forensics)</h2>
+        <p style="color: #94a3b8; margin-bottom: 12px;">
+            Hides secret text inside PNG pixels using Least Significant Bit (LSB) encoding, inspects &amp; strips hidden EXIF/GPS spy metadata, and verifies file integrity via SHA-256.
+        </p>
+        <a href="{{ url_for('stegovault') }}" class="btn btn-green">Open StegoVault Lab</a>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <h3>Latest HoneyTrap Intrusion Alerts</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>IP</th><th>Attack Type</th><th>Severity</th><th>Time</th></tr>
+                </thead>
+                <tbody>
+                    {% for row in recent_attacks %}
+                    <tr>
+                        <td class="mono">{{ row.ip_address }}</td>
+                        <td>{{ row.attack_type }}</td>
+                        <td><span class="badge badge-{{ row.severity }}">{{ row.severity }}</span></td>
+                        <td class="mono">{{ row.timestamp }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" style="color:#64748b;">No attacks logged yet. Open HoneyTrap to test!</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Latest StegoVault Forensics Logs</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Action</th><th>File</th><th>Details</th></tr>
+                </thead>
+                <tbody>
+                    {% for row in recent_stego %}
+                    <tr>
+                        <td><span class="badge badge-SAFE">{{ row.action }}</span></td>
+                        <td class="mono">{{ row.filename }}</td>
+                        <td>{{ row.details }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" style="color:#64748b;">No forensics scans yet. Open StegoVault to begin!</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

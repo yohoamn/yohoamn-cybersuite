@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusCorp Internal Admin &amp; Payroll Portal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #eef2f7;
+            color: #1e293b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .box {
+            background: #ffffff;
+            padding: 32px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+            border-top: 5px solid #1d4ed8;
+        }
+        .box.blocked {
+            border-top-color: #dc2626;
+            background: #111827;
+            color: #f8fafc;
+        }
+        h2 { margin-top: 0; }
+        label { display: block; margin-top: 12px; font-size: 0.9rem; font-weight: bold; }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            margin-top: 18px;
+            padding: 11px;
+            background: #1d4ed8;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .err {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 0.88rem;
+        }
+        .hint {
+            margin-top: 16px;
+            font-size: 0.78rem;
+            color: #64748b;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    {% if blocked %}
+    <div class="box blocked">
+        <h2 style="color: #f43f5e;">403 — INTRUSION BLOCKED</h2>
+        <p>Your IP (<strong style="color:#38bdf8;">{{ client_ip }}</strong>) triggered the <strong>{{ author }} HoneyTrap IDS</strong>.</p>
+        <p style="font-size:0.9rem; color:#fca5a5;"><strong>Reason:</strong> {{ block_reason }}</p>
+        <p style="font-size:0.82rem; color:#94a3b8; margin-top:16px;">
+            Your payload, timestamp, and device signature have been recorded in the SOC database.
+            (Analysts can unblock this IP from the HoneyTrap SOC dashboard.)
+        </p>
+    </div>
+    {% else %}
+    <div class="box">
+        <h2>NexusCorp Admin Login</h2>
+        <p style="font-size:0.88rem; color:#475569;">Authorized Finance &amp; HR Personnel Only</p>
+
+        {% if error_msg %}
+            <div class="err">{{ error_msg }}</div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('trap_portal') }}">
+            <label>Corporate Admin ID</label>
+            <input type="text" name="username" placeholder="admin" required>
+            <label>Password</label>
+            <input type="text" name="password" placeholder="Enter password or test payload" required>
+            <button type="submit">Sign In to Server</button>
+        </form>
+
+        <div class="hint">
+            <strong>Demo Test Payloads to try:</strong><br>
+            SQLi: <code>admin' OR 1=1 --</code><br>
+            XSS: <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>
+        </div>
+    </div>
+    {% endif %}
+</body>
+</html>

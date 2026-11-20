@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Ownership Verification{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 680px; margin: 30px auto; border: 2px solid #00e5ff; text-align: center;">
+    <span class="badge badge-SAFE" style="font-size: 0.9rem; margin-bottom: 12px;">CRYPTOGRAPHICALLY VERIFIED ORIGINAL BUILD</span>
+    <h1 style="color: #00e5ff; margin-bottom: 8px;">{{ author }} CyberSuite</h1>
+    <p style="color: #cbd5e1;">HoneyTrap Web Honeypot &amp; StegoVault Image Forensics Platform</p>
+
+    <div class="code-box" style="text-align: left; margin-top: 20px;">
+        <strong>Original Creator:</strong> {{ author }}<br>
+        <strong>Program Track:</strong> HCL LMS Career Training — Cyber Analyst<br>
+        <strong>Build Fingerprint:</strong> {{ build_id }}<br>
+        <strong>Integrity Status:</strong> {% if tampered %}TAMPERED CLONE{% else %}GENUINE / UNMODIFIED{% endif %}
+    </div>
+
+    <p style="margin-top: 18px; font-size: 0.85rem; color: #94a3b8;">
+        Stealth verification route <code>/yohoamn</code> confirms genuine authorship during live reviews.
+    </p>
+</div>
+{% endblock %}

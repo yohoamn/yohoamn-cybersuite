@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}HoneyTrap IDS{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px;">
+    <div>
+        <h1>HoneyTrap — Active Honeypot &amp; Attack Visualizer</h1>
+        <p style="color: #94a3b8;">Decoy Trap URL to share/test: <a href="{{ trap_url }}" target="_blank" class="mono">{{ trap_url }}</a></p>
+    </div>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <form method="POST" action="{{ url_for('simulate_attack') }}">
+            <button type="submit" class="btn">Simulate Live Attacks</button>
+        </form>
+        <form method="POST" action="{{ url_for('clear_logs') }}">
+            <button type="submit" class="btn btn-danger">Reset Logs</button>
+        </form>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <h3>Attack Type Breakdown</h3>
+        <table>
+            <thead><tr><th>Detected Threat Category</th><th>Hits</th></tr></thead>
+            <tbody>
+                {% for b in breakdown %}
+                <tr>
+                    <td>{{ b.attack_type }}</td>
+                    <td><strong>{{ b.cnt }}</strong></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="2" style="color:#64748b;">No threats captured yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3>Auto-Blocked Attacker IPs (Firewall Ban List)</h3>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>IP Address</th><th>Ban Reason</th><th>Action</th></tr></thead>
+                <tbody>
+                    {% for ip in blocked %}
+                    <tr>
+                        <td class="mono">{{ ip.ip_address }}</td>
+                        <td>{{ ip.reason }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('unblock_ip') }}" style="margin:0;">
+                                <input type="hidden" name="ip" value="{{ ip.ip_address }}">
+                                <button type="submit" class="btn btn-secondary" style="margin:0; padding:5px 10px; font-size:0.78rem;">Unblock</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" style="color:#64748b;">No IPs currently banned.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Captured Intrusion Payloads (Live SOC Feed)</h3>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Source IP</th>
+                    <th>Threat Type</th>
+                    <th>Severity</th>
+                    <th>Username Payload</th>
+                    <th>Password Payload</th>
+                    <th>Client / User-Agent</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td class="mono">{{ log.timestamp }}</td>
+                    <td class="mono">{{ log.ip_address }}</td>
+                    <td><strong>{{ log.attack_type }}</strong></td>
+                    <td><span class="badge badge-{{ log.severity }}">{{ log.severity }}</span></td>
+                    <td class="mono">{{ log.username_tried }}</td>
+                    <td class="mono">{{ log.payload_tried }}</td>
+                    <td style="font-size:0.78rem; color:#94a3b8;">{{ log.user_agent }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7" style="color:#64748b;">Waiting for intrusions... Click "Open Decoy Trap" or "Simulate Live Attacks".</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CyberSuite{% endblock %} | {{ author }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% if tampered %}
+    <div class="tamper-banner">
+        WARNING: UNAUTHORIZED CLONE DETECTED — ORIGINAL AUTHOR: yohoamn!
+    </div>
+    {% endif %}
+
+    {% if current_user %}
+    <nav class="navbar">
+        <div class="brand">
+            {{ author }} CyberSuite <span>SOC v1.0</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}">Overview</a>
+            <a href="{{ url_for('honeytrap_soc') }}">HoneyTrap IDS</a>
+            <a href="{{ url_for('stegovault') }}">StegoVault Forensics</a>
+            <a href="{{ url_for('trap_portal') }}" target="_blank">Open Decoy Trap</a>
+            <a href="{{ url_for('verify_owner') }}">Author Proof</a>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Logout ({{ current_user }})</a>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, msg in messages %}
+                    <div class="alert alert-{{ category }}">{{ msg }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        &copy; 2026 <strong>{{ author }}</strong> — HoneyTrap IDS &amp; StegoVault Forensics | Build ID: <span class="mono">{{ build_id }}</span>
+    </footer>
+</body>
+</html>

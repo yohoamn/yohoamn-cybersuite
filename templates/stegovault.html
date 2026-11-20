@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}StegoVault Forensics{% endblock %}
+
+{% block content %}
+<h1>StegoVault — Invisible Data Hiding &amp; Image Forensics</h1>
+<p style="color: #94a3b8; margin-bottom: 22px;">LSB Steganography Engine + EXIF Spy Metadata Scrubber + SHA-256 Integrity Verifier by <strong>{{ author }}</strong></p>
+
+{% if result %}
+<div class="card" style="border-color: #00e5ff; margin-bottom: 24px;">
+    <h2>Analysis Result — {{ result.filename }}</h2>
+
+    {% if result.type == "decode" %}
+        <p>Status:
+            {% if result.found %}
+                <span class="badge badge-SAFE">SECRET PAYLOAD EXTRACTED</span>
+            {% else %}
+                <span class="badge badge-MEDIUM">NO HIDDEN PAYLOAD</span>
+            {% endif %}
+        </p>
+        <div class="code-box">{{ result.message }}</div>
+        <p style="margin-top:10px; font-size:0.85rem; color:#94a3b8;">SHA-256: <span class="mono">{{ result.hash }}</span></p>
+
+    {% elif result.type == "exif" %}
+        <p style="color:#94a3b8;">Extracted Image &amp; EXIF Metadata Fields:</p>
+        <table>
+            <thead><tr><th>Metadata Field</th><th>Extracted Value</th></tr></thead>
+            <tbody>
+                {% for k, v in result.exif.items() %}
+                <tr>
+                    <td><strong>{{ k }}</strong></td>
+                    <td class="mono">{{ v }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p style="margin-top:10px; font-size:0.85rem; color:#94a3b8;">SHA-256: <span class="mono">{{ result.hash }}</span></p>
+
+    {% elif result.type == "hash" %}
+        <p>File Size: <strong>{{ result.size_kb }} KB</strong></p>
+        <div class="code-box"><strong>Computed SHA-256:</strong><br>{{ result.hash }}</div>
+        {% if result.expected %}
+            <p style="margin-top:12px;">
+                Verification Verdict:
+                {% if result.matched %}
+                    <span class="badge badge-SAFE">MATCH — FILE IS 100% AUTHENTIC &amp; UNMODIFIED</span>
+                {% else %}
+                    <span class="badge badge-CRITICAL">MISMATCH — FILE TAMPERING DETECTED!</span>
+                {% endif %}
+            </p>
+        {% endif %}
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="grid-2">
+    <div class="card">
+        <h3>1. Hide Secret Message (LSB Steganography)</h3>
+        <p style="font-size:0.85rem; color:#94a3b8;">Embeds invisible text bits into pixel RGB channels without changing how the image looks.</p>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="tool" value="encode">
+            <label>Upload Cover Image (PNG / JPG)</label>
+            <input type="file" name="file" accept="image/*" required>
+            <label>Secret Message to Hide</label>
+            <textarea name="secret_message" rows="3" placeholder="Enter confidential intel..." required></textarea>
+            <button type="submit" class="btn">Encode &amp; Download Stego PNG</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3>2. Extract Hidden Message (LSB Decoder)</h3>
+        <p style="font-size:0.85rem; color:#94a3b8;">Reads least-significant pixel bits to uncover hidden steganographic payloads.</p>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="tool" value="decode">
+            <label>Upload Suspect PNG Image</label>
+            <input type="file" name="file" accept="image/png" required>
+            <button type="submit" class="btn btn-green">Scan &amp; Reveal Secret</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3>3. EXIF Spy-Data Inspector &amp; Scrubber</h3>
+        <p style="font-size:0.85rem; color:#94a3b8;">Reveals hidden camera model, timestamps &amp; GPS data — or strips them completely for privacy.</p>
+        <form method="POST" enctype="multipart/form-data">
+            <label>Upload Photo (JPG / PNG)</label>
+            <input type="file" name="file" accept="image/*" required>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button type="submit" name="tool" value="exif_inspect" class="btn">Inspect EXIF Data</button>
+                <button type="submit" name="tool" value="exif_strip" class="btn btn-danger">Strip EXIF &amp; Download Clean</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3>4. SHA-256 File Integrity &amp; Tamper Check</h3>
+        <p style="font-size:0.85rem; color:#94a3b8;">Generates cryptographic SHA-256 fingerprint. Paste an original hash to detect even a 1-byte edit.</p>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="tool" value="hash_check">
+            <label>Upload Any File</label>
+            <input type="file" name="file" required>
+            <label>Expected SHA-256 Hash (Optional — for verification)</label>
+            <input type="text" name="expected_hash" placeholder="Leave blank to just calculate hash">
+            <button type="submit" class="btn btn-secondary">Calculate / Verify Hash</button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Recent Forensics Audit Log (SQLite Database)</h3>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>Timestamp</th><th>Analyst</th><th>Operation</th><th>Filename</th><th>SHA-256 (Short)</th><th>Details</th></tr>
+            </thead>
+            <tbody>
+                {% for h in history %}
+                <tr>
+                    <td class="mono">{{ h.timestamp }}</td>
+                    <td>{{ h.analyst }}</td>
+                    <td><span class="badge badge-SAFE">{{ h.action }}</span></td>
+                    <td class="mono">{{ h.filename }}</td>
+                    <td class="mono">{{ h.sha256_hash[:20] }}...</td>
+                    <td>{{ h.details }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" style="color:#64748b;">No forensics activity recorded yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
