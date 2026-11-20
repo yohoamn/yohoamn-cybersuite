@@ -276,6 +276,10 @@ def login():
             flash("Username and password are required.", "danger")
             return redirect(url_for("login"))
 
+        client_ip = get_client_ip()
+        ua = request.headers.get("User-Agent", "Unknown")[:120]
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
         conn = get_db()
         cur = conn.cursor()
 
@@ -287,7 +291,7 @@ def login():
                         username,
                         generate_password_hash(password),
                         "Cyber Analyst",
-                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        now,
                     ),
                 )
                 conn.commit()
@@ -300,14 +304,58 @@ def login():
 
         cur.execute("SELECT * FROM users WHERE username = ?", (username,))
         user = cur.fetchone()
-        conn.close()
 
         if user and check_password_hash(user["password_hash"], password):
+            cur.execute(
+                """
+                INSERT INTO attack_logs
+                (ip_address, target_endpoint, username_tried, payload_tried, attack_type, severity, user_agent, timestamp)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    client_ip,
+                    "/login",
+                    username[:100],
+                    "*** (Authenticated)",
+                    "SOC Login Success (/login)",
+                    "SAFE",
+                    ua,
+                    now,
+                ),
+            )
+            conn.commit()
+            conn.close()
             session["user_id"] = user["id"]
             session["username"] = user["username"]
             session["role"] = user["role"]
             flash(f"Welcome back, {user['username']}. SOC systems online.", "success")
             return redirect(url_for("dashboard"))
+
+        attack_type, severity = classify_payload(username, password)
+        if attack_type == "Brute-Force / Unauthorized Login":
+            attack_type = "Failed SOC Login (/login)"
+        else:
+            attack_type = f"{attack_type} (/login)"
+
+        cur.execute(
+            """
+            INSERT INTO attack_logs
+            (ip_address, target_endpoint, username_tried, payload_tried, attack_type, severity, user_agent, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                client_ip,
+                "/login",
+                username[:100],
+                password[:150],
+                attack_type,
+                severity,
+                ua,
+                now,
+            ),
+        )
+        conn.commit()
+        conn.close()
 
         flash("Invalid analyst credentials.", "danger")
         return redirect(url_for("login"))
@@ -327,7 +375,9 @@ def logout():
 def dashboard():
     conn = get_db()
     cur = conn.cursor()
-    total_attacks = cur.execute("SELECT COUNT(*) FROM attack_logs").fetchone()[0]
+    total_attacks = cur.execute(
+        "SELECT COUNT(*) FROM attack_logs WHERE severity != 'SAFE'"
+    ).fetchone()[0]
     critical_attacks = cur.execute(
         "SELECT COUNT(*) FROM attack_logs WHERE severity = 'CRITICAL'"
     ).fetchone()[0]
@@ -413,7 +463,8 @@ def trap_portal():
         )
 
         hits = cur.execute(
-            "SELECT COUNT(*) FROM attack_logs WHERE ip_address = ?", (client_ip,)
+            "SELECT COUNT(*) FROM attack_logs WHERE ip_address = ? AND target_endpoint = '/trap-login'",
+            (client_ip,),
         ).fetchone()[0]
 
         if severity == "CRITICAL" or hits >= 3:
@@ -641,4 +692,4 @@ def verify_owner():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)
