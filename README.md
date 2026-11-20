@@ -56,7 +56,7 @@ Set the generated value as the `SECRET_KEY` environment variable.
 **4. Run the application**
 
 ``` bash
-python app.py
+py app.py
 ```
 
 Open `http://127.0.0.1:5000` in your browser.
